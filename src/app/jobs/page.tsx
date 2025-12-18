@@ -1,24 +1,67 @@
+"use client";
+
+import moment from "moment";
+import { useState } from "react";
 import { JobCard } from "@/components/job-card";
 import { JobSearch } from "@/components/job-search";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useJobs } from "@/hooks/use-jobs";
+import type { Job, JobFilters } from "@/types/job";
 
 const Home = () => {
-  const exampleJob = {
-    id: "1",
-    timePosted: "2 days ago",
-    tags: ["Entry Level", "Senior"],
-    companyLogoUrl: "https://placehold.co/64x64/0047AB/FFFFFF.png?text=TC",
-    jobTitle: "Frontend Developer",
-    companyName: "Tech Corp",
-    salaryRange: "$70k - $90k",
-    isRemote: true,
-    jobType: "Full-time",
-  };
+  const [filters, setFilters] = useState<JobFilters>({
+    search: "",
+    jobType: null,
+    workplace: null,
+    seniority: null,
+  });
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useJobs(filters);
+
+  const jobs = data?.pages?.flatMap((page) => page.data);
+
   return (
     <div className="px-4 lg:px-0">
-      <JobSearch />
-      <JobCard {...exampleJob} />
-      <JobCard {...exampleJob} />
-      <JobCard {...exampleJob} />
+      <JobSearch onChangeFilters={setFilters} />
+
+      {isLoading && (
+        <>
+          <Skeleton className="mx-auto mt-4 h-44 w-full max-w-5xl rounded-xl border border-gray-200 shadow-md" />
+          <Skeleton className="mx-auto mt-4 h-44 w-full max-w-5xl rounded-xl border border-gray-200 shadow-md" />
+        </>
+      )}
+
+      <div className="space-y-4 pb-6">
+        {jobs?.map((job: Job) => (
+          <JobCard
+            companyLogoUrl={
+              job.company.logo
+                ? process.env.NEXT_PUBLIC_API_URL + job.company.logo.url
+                : ""
+            }
+            companyName={job.company.companyName}
+            documentId={job.documentId}
+            isRemote={job.workplace === "Remote"}
+            jobTitle={job.jobTitle}
+            jobType={job.jobType}
+            key={job.id}
+            salaryRange={job.salaryRange}
+            tags={[job.seniority]}
+            timePosted={moment(job.createdAt).fromNow()}
+          />
+        ))}
+      </div>
+
+      {/* Load More */}
+      {hasNextPage && (
+        <div className="flex justify-center py-6">
+          <Button disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
+            {isFetchingNextPage ? "Loading..." : "Load More"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,35 +2,9 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import type { CompanyOverviewPageProps } from "@/types/company";
 import { JobCard } from "./job-card";
 import { Button } from "./ui/button";
-
-type CompanyOverviewPageProps = {
-  companyLogoUrl?: string;
-  companyName: string;
-  totalJobs: number;
-  overviewContent: {
-    about: string[];
-  };
-  jobs: JobCardProps[];
-  sidebarDetails: {
-    companyWebsite?: string;
-  };
-};
-
-type JobCardProps = {
-  id: string;
-  timePosted: string;
-  tags: string[];
-  companyLogoUrl?: string;
-  jobTitle: string;
-  companyName: string;
-  salaryRange: string;
-  isQuickApply: boolean;
-  isRemote: boolean;
-  location: string;
-  jobType: string;
-};
 
 export const CompanyOverviewPage = ({
   companyLogoUrl,
@@ -45,6 +19,7 @@ export const CompanyOverviewPage = ({
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-8 font-sans">
       <div className="container mx-auto max-w-7xl">
+        {/* Company Header Section */}
         <div className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-md md:p-8">
           <div className="mb-6 flex items-center gap-4">
             <div className="flex size-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-red-500">

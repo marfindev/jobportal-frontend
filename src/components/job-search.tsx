@@ -3,6 +3,7 @@
 import { Briefcase, Building2, ChevronDown, Crown, Search } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
+import type { JobFilters } from "@/types/job";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -14,32 +15,63 @@ import {
 } from "./ui/dropdown-menu";
 import { Input } from "./ui/input";
 
-type JobType = "Full-time" | "Part-time" | "Contract" | null;
-type WorkplaceType = "Remote" | "Hybrid" | "On-Site" | null;
-type SeniorityLevel =
-  | "Entry Level"
-  | "Mid Level"
-  | "Senior"
-  | "Manager"
-  | "Director"
-  | "Executive"
-  | null;
+type JobSearchProps = {
+  onChangeFilters: (filters: JobFilters) => void;
+};
 
-export const JobSearch = () => {
+export const JobSearch = ({ onChangeFilters }: JobSearchProps) => {
   const [jobTitle, setJobTitle] = useState<string>("");
-  const [selectedJobType, setSelectedJobType] = useState<JobType>(null);
+  const [selectedJobType, setSelectedJobType] =
+    useState<JobFilters["jobType"]>(null);
   const [selectedWorkplace, setSelectedWorkplace] =
-    useState<WorkplaceType>(null);
+    useState<JobFilters["workplace"]>(null);
   const [selectedSeniority, setSelectedSeniority] =
-    useState<SeniorityLevel>(null);
+    useState<JobFilters["seniority"]>(null);
 
   const handleJobTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setJobTitle(e.target.value);
   };
 
-  const handleSearch = () => {
-    // Implement search logic here
+  const updateFilters = (newFilters?: Partial<JobFilters>) => {
+    const filters: JobFilters = {
+      search: newFilters?.search ?? jobTitle,
+      jobType: newFilters?.jobType ?? selectedJobType,
+      workplace: newFilters?.workplace ?? selectedWorkplace,
+      seniority: newFilters?.seniority ?? selectedSeniority,
+    };
+    onChangeFilters(filters);
   };
+
+  const clearAll = () => {
+    setJobTitle("");
+    setSelectedJobType(null);
+    setSelectedWorkplace(null);
+    setSelectedSeniority(null);
+    onChangeFilters({
+      search: "",
+      jobType: null,
+      workplace: null,
+      seniority: null,
+    });
+  };
+
+  const handleSearch = () => {
+    updateFilters({ search: jobTitle });
+  };
+
+  // Active filters for displaying pills
+  const activeFilters = [
+    jobTitle ? { label: `Title: ${jobTitle}`, key: "search" } : null,
+    selectedJobType
+      ? { label: `Type: ${selectedJobType}`, key: "jobType" }
+      : null,
+    selectedWorkplace
+      ? { label: `Workplace: ${selectedWorkplace}`, key: "workplace" }
+      : null,
+    selectedSeniority
+      ? { label: `Seniority: ${selectedSeniority}`, key: "seniority" }
+      : null,
+  ].filter(Boolean) as { label: string; key: keyof JobFilters }[];
 
   return (
     <div className="flex items-center justify-center py-4">
@@ -85,21 +117,17 @@ export const JobSearch = () => {
               <DropdownMenuContent className="w-48">
                 <DropdownMenuLabel>Job Type</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setSelectedJobType("Full-time")}
-                >
-                  Full-time
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedJobType("Part-time")}
-                >
-                  Part-time
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedJobType("Contract")}
-                >
-                  Contract
-                </DropdownMenuItem>
+                {["Full-time", "Part-time", "Contract"].map((type) => (
+                  <DropdownMenuItem
+                    key={type}
+                    onClick={() => {
+                      setSelectedJobType(type);
+                      updateFilters({ jobType: type });
+                    }}
+                  >
+                    {type}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -118,21 +146,17 @@ export const JobSearch = () => {
               <DropdownMenuContent className="w-48">
                 <DropdownMenuLabel>Workplace</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setSelectedWorkplace("Remote")}
-                >
-                  Remote
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedWorkplace("Hybrid")}
-                >
-                  Hybrid
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedWorkplace("On-site")}
-                >
-                  On-site
-                </DropdownMenuItem>
+                {["Remote", "Hybrid", "On-site"].map((place) => (
+                  <DropdownMenuItem
+                    key={place}
+                    onClick={() => {
+                      setSelectedWorkplace(place);
+                      updateFilters({ workplace: place });
+                    }}
+                  >
+                    {place}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -151,39 +175,55 @@ export const JobSearch = () => {
               <DropdownMenuContent className="w-48">
                 <DropdownMenuLabel>Seniority</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setSelectedSeniority("Entry Level")}
-                >
-                  Entry Level
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedSeniority("Mid Level")}
-                >
-                  Mid Level
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedSeniority("Senior")}
-                >
-                  Senior
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedSeniority("Manager")}
-                >
-                  Manager
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedSeniority("Director")}
-                >
-                  Director
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSelectedSeniority("Executive")}
-                >
-                  Executive
-                </DropdownMenuItem>
+                {[
+                  "Entry Level",
+                  "Mid level",
+                  "Senior",
+                  "Manager",
+                  "Director",
+                  "Executive",
+                ].map((level) => (
+                  <DropdownMenuItem
+                    key={level}
+                    onClick={() => {
+                      setSelectedSeniority(level);
+                      updateFilters({ seniority: level });
+                    }}
+                  >
+                    {level}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Clear All */}
+            {(jobTitle ||
+              selectedJobType ||
+              selectedWorkplace ||
+              selectedSeniority) && (
+              <Button
+                className="rounded-full border-red-300 text-red-600 hover:bg-red-50"
+                onClick={clearAll}
+                variant="outline"
+              >
+                Clear All
+              </Button>
+            )}
           </div>
+
+          {/* Active Filters Pills */}
+          {activeFilters.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {activeFilters.map((f) => (
+                <span
+                  className="flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-blue-700 text-sm"
+                  key={f.key}
+                >
+                  {f.label}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
